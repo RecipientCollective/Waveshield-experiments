@@ -1,3 +1,6 @@
+/// controllo voltaggio playhead - lunghezza loop - loop o no- velocita di lettura
+
+
 /*
  * Adafruit SampleRateMod.pde example modified to use WaveHC.
  *
@@ -14,9 +17,16 @@ WaveHC wave;      // This is the only wave (audio) object, since we will only pl
 
 const int pingPin = 7;
 int IRpin = 1;
-
+int cm = 0;
 //variable ping or ir
-boolean ping = true;
+boolean ping = false;
+int rangeUnit=0;
+float scalePot = 0 ;
+
+const int knockSensor = A0; // the piezo is connected to analog pin 0
+const int threshold = 15;  // threshold value to decide when the detected sound is a knock or not
+int sensorReading = 0;      // variable to store the value read from the sensor pin
+
 
 /*
  * Define macro to put error messages in flash memory
@@ -101,6 +111,7 @@ int16_t lastpotval = 0;
  */
 void playcomplete(FatReader &file) {
   int16_t potval;
+  float potvalF;
   uint32_t newsamplerate;
   
    if (!wave.create(file)) {
@@ -111,6 +122,23 @@ void playcomplete(FatReader &file) {
    
   while (wave.isplaying) {
  
+    
+ sensorReading = analogRead(knockSensor);  
+  Serial.print("sensor knok = "); 
+  Serial.println(sensorReading);
+  // if the sensor reading is greater than the threshold:
+  if (sensorReading >= threshold) {
+    // toggle the status of the ledPin:
+    //ledState = !ledState;   
+    // update the LED pin itself:        
+    //digitalWrite(ledPin, ledState);
+    // send the string "Knock!" back to the computer, followed by newline
+    Serial.println("change sensor");    
+    ping = !ping;  
+  }
+    
+    
+    
  if (ping){   
   // establish variables for duration of the ping, 
   // and the distance result in inches and centimeters:
@@ -140,29 +168,41 @@ void playcomplete(FatReader &file) {
   Serial.print(cm);
   Serial.print("cm");
   Serial.println();
-  
+  potval = duration;
+  if (potval>rangeUnit){
+  rangeUnit=potval;
+  }  
+ 
   delay(100);
  }else{
-//SHARP IR
-float volts = analogRead(IRpin)*0.0048828125;   // value from sensor * (5/1024) - if running 3.3.volts then change 5 to 3.3
-  float distance = 65*pow(volts, -1.10);          // worked out from graph 65 = theretical distance / (1/Volts)S - luckylarry.co.uk
-  Serial.println(distance);                       // print the distance
+  //SHARP IR
+  //float volts = analogRead(IRpin)*0.0048828125;   // value from sensor * (5/1024) - if running 3.3.volts then change 5 to 3.3
+  //float distance = 23*pow(volts, -1.10);  
+  // worked out from graph 65 = theretical distance / (1/Volts)S - luckylarry.co.uk
+  float irSens = analogRead(IRpin);
+  Serial.println(irSens);                       // print the distance
   delay(100); 
- 
+  potval = irSens;
+ if (potval>rangeUnit){
+  rangeUnit=potval;
+  }  
 }
   
     
     
-     potval = cm;
+     
      if ( ((potval - lastpotval) > HYSTERESIS) || ((lastpotval - potval) > HYSTERESIS)) {
          putstring("pot = ");
          Serial.println(potval, DEC); 
          putstring("tickspersam = ");
          Serial.print(wave.dwSamplesPerSec, DEC);
          putstring(" -> ");
+        // potval 0-1024 sample 0-24000  x/1024*24000
+        potvalF = potval;
+        scalePot = (potvalF/1024)*24000;
          newsamplerate = wave.dwSamplesPerSec;
          newsamplerate *= potval;
-         newsamplerate /= 300;   // we want to 'split' between sped up and slowed down.
+         newsamplerate /= 512;   // we want to 'split' between sped up and slowed down.
         if (newsamplerate > 24000) {
           newsamplerate = 24000;  
         }
@@ -172,6 +212,8 @@ float volts = analogRead(IRpin)*0.0048828125;   // value from sensor * (5/1024) 
         wave.setSampleRate(newsamplerate);
         
         Serial.println(newsamplerate, DEC);
+        putstring("scalePot = ");
+        Serial.println(scalePot);
         lastpotval = potval;
      }
      delay(100);
@@ -197,3 +239,4 @@ long microsecondsToCentimeters(long microseconds)
   // object we take half of the distance travelled.
   return microseconds / 29 / 2;
 }
+
