@@ -1,6 +1,4 @@
 /// controllo voltaggio playhead - lunghezza loop - loop o no- velocita di lettura
-
-
 /*
  * Adafruit SampleRateMod.pde example modified to use WaveHC.
  *
@@ -19,14 +17,9 @@ const int pingPin = 7;
 int IRpin = 1;
 int cm = 0;
 //variable ping or ir
-boolean ping = false;
+boolean ping = true;
 int rangeUnit=0;
 float scalePot = 0 ;
-
-const int knockSensor = A0; // the piezo is connected to analog pin 0
-const int threshold = 15;  // threshold value to decide when the detected sound is a knock or not
-int sensorReading = 0;      // variable to store the value read from the sensor pin
-
 
 /*
  * Define macro to put error messages in flash memory
@@ -121,24 +114,6 @@ void playcomplete(FatReader &file) {
    wave.play();
    
   while (wave.isplaying) {
- 
-    
- sensorReading = analogRead(knockSensor);  
-  Serial.print("sensor knok = "); 
-  Serial.println(sensorReading);
-  // if the sensor reading is greater than the threshold:
-  if (sensorReading >= threshold) {
-    // toggle the status of the ledPin:
-    //ledState = !ledState;   
-    // update the LED pin itself:        
-    //digitalWrite(ledPin, ledState);
-    // send the string "Knock!" back to the computer, followed by newline
-    Serial.println("change sensor");    
-    ping = !ping;  
-  }
-    
-    
-    
  if (ping){   
   // establish variables for duration of the ping, 
   // and the distance result in inches and centimeters:
@@ -202,7 +177,7 @@ void playcomplete(FatReader &file) {
         scalePot = (potvalF/1024)*24000;
          newsamplerate = wave.dwSamplesPerSec;
          newsamplerate *= potval;
-         newsamplerate /= 512;   // we want to 'split' between sped up and slowed down.
+         newsamplerate /= 300;   // we want to 'split' between sped up and slowed down.
         if (newsamplerate > 24000) {
           newsamplerate = 24000;  
         }
