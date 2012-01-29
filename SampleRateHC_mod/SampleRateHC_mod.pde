@@ -22,7 +22,7 @@ WaveHC wave;      // This is the only wave (audio) object, since we will only pl
 #define error(msg) error_P(PSTR(msg))
 
 const int buttonPin = 7;     // the number of the pushbutton pin
-const int ledPin =  13;      // the number of the LED pin
+const int ledPin =  8;      // the number of the LED pin
 const int potPin = 0;
 // variables will change:
 int buttonState = 0;         // variable for reading the pushbutton status
@@ -174,4 +174,5 @@ void playfile(char *name) {
    }
   sdErrorCheck();
 }
+
 
